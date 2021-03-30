@@ -9,3 +9,7 @@ The only dependencies that this bot needs are
 
 **Pillow**
 
+
+For tokens, get some bot tokens and place them in tokens.txt.
+
+You might want to make 2 bots if you want a development bot.
