@@ -1,6 +1,6 @@
 dev_mode = False
 
-version = "1.6.1"
+version = "1.7"
 
 from random import randint, choice
 from vibscore import render
@@ -26,6 +26,7 @@ Commands:
 `!vib say` - Vibri says what you want her to say!
 `!vib rate` - Vibri rates your meme, poem, art piece, or any attachment!
 `!vib number <n>` Vibri translates a base 10 number (<n>) into Vib-Ribbon shapes!
+`!vib execution` Displays how many days until Vibri will be publicly executed, or how many days have passed since then.
 `!vib cue <filename> <instruction>` - Creates a CUE file
     <filename> should be in quotes, e.g. "Song.wav"
     <instruction can be one of two things:
@@ -238,6 +239,16 @@ async def on_message(message):
             await message.channel.send("https://cdn.discordapp.com/attachments/760576449387954229/791703944799059988/video.mp4")
         else:
             await message.channel.send("This command is not available right now.")
+        elif message.content == "!vib execution":
+        today = datetime.date.today()
+        future = datetime.date(2021, 7, 2)
+        diff = future - today
+        if (diff.days == 0):
+            await message.channel.send("Vibri will be publicly executed today.")
+        elif (diff.days < 0):
+            await message.channel.send("Vibri was publicly executed " + str(abs(diff.days)) + " days ago.")
+        else:
+            await message.channel.send("Vibri will be publicly executed in " + str(diff.days) + " days")
 
 
 
