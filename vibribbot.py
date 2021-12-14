@@ -1,6 +1,6 @@
-dev_mode = False
+dev_mode = True
 
-version = "1.7"
+version = "1.7.1"
 
 from random import randint, choice
 from vibscore import render
@@ -10,7 +10,6 @@ help_text = """
 
 Thank you for adding Vib-RiBot (Discord edition)
 This is loosely based off of the Twitter bot (@VibRibot) by @zeriben12
-Discord bot created by Twitter user @_PLAY_NOW
 
 Commands:
 ---
@@ -26,15 +25,14 @@ Commands:
 `!vib say` - Vibri says what you want her to say!
 `!vib rate` - Vibri rates your meme, poem, art piece, or any attachment!
 `!vib number <n>` Vibri translates a base 10 number (<n>) into Vib-Ribbon shapes!
-`!vib execution` Displays how many days until Vibri will be publicly executed, or how many days have passed since then.
 `!vib cue <filename> <instruction>` - Creates a CUE file
     <filename> should be in quotes, e.g. "Song.wav"
     <instruction can be one of two things:
     *<n> or %<timestamps>
-        *<n> repeats the song <n> times, for example,
+        *<n> repeats the song <n> times, for example, 
             `!vib cue "Song.wav" *10`
         will give a cue file that has Song.wav listed 10 times
-
+        
         %<timestamps> works like this:
             `!vib cue "test song.wav" %00:00:00|01:00:00|01:59:00?02:00:00`
         Each track's timestamp is split by a | and the end of the previous track comes before a ?
@@ -45,7 +43,7 @@ Commands:
 
 
 def quote():
-    q = open("res.txt", "r").read().split("\n")
+    q = open("quotes.txt", "r").read().split("\n")
     return choice(q) or "tfw you miss a block :pensive:"
 
 
@@ -92,29 +90,22 @@ def cue(m):
     file = ct.split("\"")[1]
     cue_inst = " ".join(cue_inst).split('"' + file + '"')
     ret = ""
-
     if cue_inst[1].startswith(" *"):
-
         count = int(cue_inst[1].split("*")[1]) or 1
-
         for i in range(1, count + 1):
-            if toDouble(i) == "ERR": # track no > 99
+            if toDouble(i) == "ERR":
                 return "Game over! Too many tracks."
             ret += "FILE \"" + file + "\" BINARY\n"
             ret += "\tTRACK " + toDouble(i) + " AUDIO\n"
             ret += "\t\tINDEX 01 00:00:00\n"
-
         prod = "```\n" + ret + "\n```"
         if len(prod) > 1999:
             return "Game over! The CUE file is too long!"
         return prod
-
     elif cue_inst[1].startswith(" %"):
-
         timestamps = cue_inst[1][2:].split("|")
         ret += "FILE \"" + file + "\" BINARY\n"
         ctr = 0
-
         for i in timestamps:
             ctr += 1
             ret += "  TRACK " + toDouble(ctr) + " AUDIO\n"
@@ -125,11 +116,9 @@ def cue(m):
             else:
                 ret += "    INDEX 01 " + i + "\n"
         prod = "```\n" + ret + "\n```"
-
         if len(prod) > 1999:
             return "Game over! The CUE file is too long."
         return prod
-
     else:
         return "Game over! Invalid argument '" + cue_inst[1][0] + "'"
 
@@ -142,9 +131,6 @@ def ctry(m):
 
 
 def toDouble(n):
-    # this was a stupid function name. basically makes a single digit number
-    # into a double digit number by adding 0 before it.
-
     if n > 99:
         return "ERR"
     elif n < 1:
@@ -166,21 +152,49 @@ def vib_say(msg):
 
 
 import discord
+from discord_slash import SlashCommand, SlashContext
+from discord_slash.utils.manage_commands import create_option
 
-tokens = open("tokens.txt", "r").split("\n")
+tokens = open("tokens.txt", "r").read().split("\n")
+reg_token = tokens[0]  # Regular token is on first line
+dev_token = tokens[1]  # Developer token is on second line
 
 if dev_mode:
-    token = tokens[1]
+    token = dev_token
 else:
-    token = tokens[0]
+    token = reg_token
 
 client = discord.Client()
+#slash = SlashCommand(client, sync_commands=True)
+"""
+@slash.slash(name="vib", description="A quote from Vib-Ribbon")
+async def _send_quote(ctx):
+    await ctx.send(quote())
 
+@slash.slash(name="hug", description="Hug Vibri")
+async def _hug(ctx):
+    await ctx.send(hugReact())
+
+@slash.slash(name="vibcheck", description="Vibri does a vib check")
+async def _vibcheck(ctx):
+    await ctx.send(roulette(
+            "https://cdn.discordapp.com/attachments/760576449387954229/782784397178699786/vib_check_pass.png",
+            "https://cdn.discordapp.com/attachments/760576449387954229/782784230521438238/vib_check_fail.png",
+            5
+        ))
+
+@slash.slash(name="say", description="Vibri says anything you want!", options=[
+    create_option(name="phrase", description="Thing you want Vibri to say", option_type=3, required=True)
+])
+async def _say(ctx, phrase: str):
+    await ctx.send(vib_say(phrase))
+"""
 
 @client.event
 async def on_message(message):
     if message.author == client.user:
         return
+
     if message.content.lower() == "!vib":
         await message.channel.send(quote())
     elif message.content.lower() == "!vib scream":
@@ -204,13 +218,15 @@ async def on_message(message):
     elif message.content.lower() == "!vib stroke":
         await message.channel.send(
             "https://cdn.discordapp.com/attachments/587066858239295491/762884846196359189/unknown.png")
+    # elif message.content.lower() == "!vib invite":
+    # await message.channel.send("Thanks for your interest!\nhttps://discord.com/api/oauth2/authorize?client_id=760235101442801714&permissions=67584&scope=bot")
     elif message.content.lower() == "!vib nus":
         await message.channel.send(
             "https://cdn.discordapp.com/attachments/587087600360226817/763503886622654494/Screen_Shot_2020-10-07_at_4.48.10_PM.png")
     elif message.content.lower() == "!vib hug":
         await message.channel.send(hugReact())
     elif message.content.lower().startswith("!vib say"):
-        await message.channel.send(vib_say(message)) # this uses vib_say to check for slurs.
+        await message.channel.send(vib_say(message))
     elif message.content.lower().startswith("!vib rate"):
         await message.channel.send(rate())
     elif message.content.lower().startswith('!vib number'):
@@ -222,12 +238,10 @@ async def on_message(message):
         rnum = message.content.split(" ")[2]
         if int(rnum) < 0:
             rnum = 0
-        # rendering file name
         ts = str(message.created_at.hour) + "-" + str(message.created_at.minute) + "-" + str(
             message.created_at.second) + "-" + str(message.created_at.microsecond)
         render.render(str(rnum), "render-" + ts)
         await message.channel.send(file=discord.File("render-" + ts + ".jpg"))
-        # delete file once sent to sace space
         os.remove("render-" + ts + ".jpg")
     elif message.content == "!vib stop":
         if dev_mode:
@@ -239,7 +253,10 @@ async def on_message(message):
             await message.channel.send("https://cdn.discordapp.com/attachments/760576449387954229/791703944799059988/video.mp4")
         else:
             await message.channel.send("This command is not available right now.")
-        elif message.content == "!vib execution":
+    elif message.content == "!vib execution":
+        return
+        # The shutdown of the ps3 shop was cancelled
+
         today = datetime.date.today()
         future = datetime.date(2021, 7, 2)
         diff = future - today
